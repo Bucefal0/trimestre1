@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d1b2a">
+<title>Consulta de exámenes · Matemáticas Trimestre 1</title>
+<!--
+  ============================================================================
+  CONSULTA DE EXÁMENES  ·  Matemáticas · Trimestre 1
+  ============================================================================
+  Este archivo es autónomo (no necesita internet ni servidor especial).
+  Debe estar EN LA MISMA CARPETA que las carpetas de los grupos:
+      index.html
+      Segundo D/   Tercero A/   Tercero B/   Tercero C/   Tercero D/  ...
+  Si subes las imágenes a otra ruta, cambia CONFIG.base (abajo del todo).
+  Para configurar el botón "Tengo una duda", edita CONFIG.whatsapp o
+  CONFIG.email más abajo (busca "CONFIG = {" ).
+  ============================================================================
+-->
+<style>
+:root{
+  --bg:#0d1b2a; --bg2:#132538; --card:#ffffff; --ink:#10202f; --ink2:#5b6b7c;
+  --brand:#1b7f79; --brand2:#0f5f5a; --accent:#ffb703; --line:#dfe6ec;
+  --ok:#1b9e77; --err:#d1495b; --radius:16px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  color:var(--ink);
+  background:
+     radial-gradient(1200px 600px at 15% -10%, #1d3b57 0%, transparent 60%),
+     radial-gradient(900px 500px at 110% 10%, #14504c 0%, transparent 55%),
+     var(--bg);
+  -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:680px; margin:0 auto; padding:28px 18px 40px}
+
+/* ---------- Encabezado ---------- */
+.brand{display:flex; align-items:center; gap:14px; margin:6px 0 22px}
+.logo{
+  width:52px;height:52px;flex:0 0 52px;border-radius:14px;
+  background:linear-gradient(145deg,var(--brand),#0b4f4a);
+  display:grid;place-items:center;color:#fff;font-size:26px;font-weight:700;
+  box-shadow:0 8px 22px rgba(0,0,0,.35)
+}
+.brand h1{margin:0;font-size:1.28rem;line-height:1.2;color:#fff;letter-spacing:.2px}
+.brand p{margin:4px 0 0;color:#9fb3c8;font-size:.9rem}
+
+/* ---------- Tarjeta del formulario ---------- */
+.card{
+  background:var(--card); border-radius:var(--radius); padding:22px 20px 20px;
+  box-shadow:0 18px 48px rgba(0,0,0,.32)
+}
+.step{display:grid; grid-template-columns:34px 1fr; gap:10px 12px; margin-bottom:16px}
+.num{
+  width:34px;height:34px;border-radius:50%;display:grid;place-items:center;
+  background:#eef4f7;color:var(--brand2);font-weight:700;font-size:.95rem;
+  grid-row:1 / span 2;
+}
+.step label{font-size:.82rem;font-weight:600;color:var(--ink2);text-transform:uppercase;letter-spacing:.06em}
+select{
+  width:100%; padding:13px 14px; font-size:1.02rem; font-family:inherit; color:var(--ink);
+  background:#f7fafc; border:1.5px solid var(--line); border-radius:12px;
+  appearance:none; -webkit-appearance:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235b6b7c' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat:no-repeat; background-position:right 14px center; padding-right:38px;
+  min-height:48px;
+}
+select:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid #7fd1c9; outline-offset:2px}
+select{text-overflow:ellipsis}
+select:disabled{opacity:.55}
+button.primary{
+  width:100%; margin-top:6px; padding:15px 18px; font-size:1.05rem; font-weight:700; font-family:inherit;
+  color:#fff; background:linear-gradient(145deg,var(--brand),var(--brand2)); border:0; border-radius:13px;
+  cursor:pointer; box-shadow:0 10px 22px rgba(27,127,121,.35); transition:transform .08s ease, filter .15s ease;
+  min-height:52px;
+}
+button.primary:hover{filter:brightness(1.06)}
+button.primary:active{transform:translateY(1px)}
+button.primary:disabled{background:#cfd8df; color:#8a99a6; box-shadow:none; cursor:not-allowed}
+.hint{margin:12px 0 0; font-size:.86rem; color:var(--ink2); text-align:center; min-height:1.2em}
+.hint.error{color:var(--err)}
+
+/* ---------- Nota inferior ---------- */
+.nota{
+  margin:18px 4px 0; color:#98adc2; font-size:.85rem; line-height:1.5; text-align:center
+}
+.nota strong{color:#cfe0ef}
+
+/* ---------- Visor ---------- */
+#viewer{position:fixed; inset:0; z-index:50; background:#07121c; display:flex; flex-direction:column; overscroll-behavior:none}
+#viewer[hidden]{display:none}
+.bar{
+  display:flex; align-items:center; gap:10px; padding:10px 12px;
+  padding-top:max(10px, env(safe-area-inset-top));
+  background:rgba(8,18,28,.92); border-bottom:1px solid rgba(255,255,255,.08); color:#e8f1f8;
+  flex-wrap:wrap;
+}
+.bar .who{flex:1 1 180px; min-width:0}
+.bar .who b{display:block; font-size:.98rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.bar .who span{display:block; font-size:.78rem; color:#8fa8bd; margin-top:2px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.tools{display:flex; gap:6px; flex-wrap:wrap}
+.tools button, .tools a{
+  display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  min-width:42px; height:42px; padding:0 12px; border-radius:11px; font-size:.88rem; font-weight:600;
+  font-family:inherit; color:#dbe7f0; background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.12); cursor:pointer; text-decoration:none;
+}
+.tools button:hover, .tools a:hover{background:rgba(255,255,255,.16)}
+.tools [hidden]{display:none!important}
+.tools .close{background:var(--err); border-color:var(--err); color:#fff}
+.tools .duda{background:var(--brand); border-color:var(--brand); color:#fff}
+#zoomLabel{min-width:56px; font-variant-numeric:tabular-nums}
+#stage{
+  position:relative; flex:1 1 auto; min-height:0; overflow:hidden; touch-action:none;
+  background:#07121c; cursor:grab; -webkit-tap-highlight-color:transparent;
+  background-image:linear-gradient(45deg,#0a1622 25%,transparent 25%),linear-gradient(-45deg,#0a1622 25%,transparent 25%),
+                   linear-gradient(45deg,transparent 75%,#0a1622 75%),linear-gradient(-45deg,transparent 75%,#0a1622 75%);
+  background-size:22px 22px; background-position:0 0,0 11px,11px -11px,-11px 0;
+}
+#stage.zoomed{cursor:grab}
+#stage.dragging{cursor:grabbing}
+/* object-fit:contain garantiza que la hoja SIEMPRE se vea completa,
+   sin depender del cálculo de porcentajes de alto (falla en iOS Safari) */
+#stage img{
+  position:absolute; inset:0; display:block;
+  width:100%; height:100%; object-fit:contain; object-position:center center;
+  transform-origin:50% 50%; will-change:transform;
+  user-select:none; -webkit-user-select:none; -webkit-user-drag:none;
+  pointer-events:none; opacity:1; transition:opacity .18s ease;
+}
+#stage img.loading{opacity:0}
+#tip{
+  position:absolute; left:50%; bottom:max(16px, env(safe-area-inset-bottom)); transform:translateX(-50%);
+  background:rgba(8,18,28,.9); color:#dbe7f0; font-size:.82rem; line-height:1.3;
+  padding:9px 15px; border-radius:999px; border:1px solid rgba(255,255,255,.16);
+  white-space:nowrap; pointer-events:none; max-width:92vw; z-index:3;
+}
+#tip[hidden]{display:none}
+#msg{position:absolute; inset:auto 20px 20px; text-align:center; color:#ffd9de; font-size:.9rem;
+     background:rgba(209,73,91,.16); border:1px solid rgba(209,73,91,.5); padding:12px 14px; border-radius:12px}
+#msg[hidden]{display:none}
+.spin{
+  position:absolute; width:34px;height:34px;border-radius:50%;
+  border:3px solid rgba(255,255,255,.2); border-top-color:#7fd1c9; animation:sp .8s linear infinite
+}
+.spin[hidden]{display:none}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+@media (max-width:560px){
+  .bar{padding:6px 8px; gap:6px; padding-top:max(6px, env(safe-area-inset-top))}
+  .bar .who{flex-basis:100%; order:-1}
+  .bar .who b{font-size:.92rem}
+  .bar .who span{font-size:.71rem; margin-top:1px}
+  .tools{width:100%; gap:5px; flex-wrap:wrap}
+  .tools button, .tools a{flex:0 0 auto; height:38px; min-width:38px; padding:0 7px; font-size:.82rem; border-radius:10px}
+  /* en el celular: cerrar al final de la fila de iconos y "Tengo una duda"
+     a todo lo ancho en su propia fila (botón grande, fácil de tocar) */
+  .tools .close{flex:0 0 38px; order:9}
+  .tools .duda{order:10; flex:1 1 100%; justify-content:center; height:38px; padding:0 12px}
+  #zoomLabel{min-width:40px}
+  /* 16px evita que iOS haga zoom automático al enfocar un selector */
+  select{font-size:16px; padding:12px 14px}
+  button.primary{font-size:16px}
+  .wrap{padding:18px 14px calc(28px + env(safe-area-inset-bottom))}
+  .brand{margin-bottom:16px}
+  .brand h1{font-size:1.15rem}
+  .nota{font-size:.8rem}
+}
+
+@media (max-width:380px){
+  .tools button, .tools a{height:34px; min-width:34px; padding:0 5px; border-radius:9px}
+  .tools .close{flex:0 0 34px}
+  #zoomLabel{min-width:38px; font-size:.78rem}
+  #btnPrint{display:none}
+  .bar .who b{font-size:.86rem}
+  .bar .who span{font-size:.66rem}
+}
+
+@media print{
+  body{background:#fff}
+  .wrap{display:none!important}
+  #viewer{position:static; inset:auto; background:#fff; height:auto}
+  .bar{display:none!important}
+  #tip{display:none!important}
+  #stage{position:static; display:block; overflow:visible; background:#fff; height:auto; min-height:0}
+  #stage img{position:static; width:auto; height:auto; max-width:100%; object-fit:fill;
+             transform:none!important; opacity:1}
+  @page{margin:8mm}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="brand">
+    <div class="logo">∑</div>
+    <div>
+      <h1>Consulta de exámenes</h1>
+      <p>Matemáticas · Trimestre 1</p>
+    </div>
+  </div>
+
+  <form class="card" id="form" autocomplete="off">
+    <div class="step">
+      <div class="num">1</div>
+      <label for="grado">Grado</label>
+      <select id="grado" required autocomplete="off"></select>
+    </div>
+
+    <div class="step">
+      <div class="num">2</div>
+      <label for="grupo">Grupo</label>
+      <select id="grupo" required autocomplete="off"></select>
+    </div>
+
+    <div class="step">
+      <div class="num">3</div>
+      <label for="alumno">Tu nombre</label>
+      <select id="alumno" required autocomplete="off" disabled>
+        <option value="">— Primero elige grado y grupo —</option>
+      </select>
+    </div>
+
+    <button type="submit" class="primary" id="ver" disabled>Ver mi examen</button>
+    <p class="hint" id="hint" role="status" aria-live="polite">Selecciona grado, grupo y tu nombre.</p>
+  </form>
+
+  <p class="nota">
+    Tu examen es personal: no compartas la liga ni la captura de otros compañeros.<br>
+    Si tu examen no aparece o la imagen no carga, avisa a tu profesor(a).
+  </p>
+</div>
+
+<div id="viewer" hidden role="dialog" aria-modal="true" aria-labelledby="vName">
+  <div class="bar">
+    <div class="who">
+      <b id="vName">—</b>
+      <span id="vMeta">—</span>
+    </div>
+    <div class="tools">
+      <button type="button" id="btnOut" title="Alejar (−)" aria-label="Alejar">−</button>
+      <button type="button" id="btnZoom" title="Restablecer zoom (0)"><span id="zoomLabel">100%</span></button>
+      <button type="button" id="btnIn" title="Acercar (+)" aria-label="Acercar">+</button>
+      <button type="button" id="btnRot" title="Girar 90°" aria-label="Girar">⟳</button>
+      <button type="button" id="btnFit" title="Ajustar a pantalla (F)" aria-label="Ajustar">⤢</button>
+      <a id="btnDl" href="#" download title="Descargar imagen" aria-label="Descargar">⤓</a>
+      <button type="button" id="btnPrint" title="Imprimir" aria-label="Imprimir">🖨</button>
+      <a id="btnDuda" class="duda" href="#" target="_blank" rel="noopener" hidden>Tengo una duda</a>
+      <button type="button" class="close" id="btnClose" title="Cerrar (Esc)" aria-label="Cerrar">✕</button>
+    </div>
+  </div>
+  <div id="stage">
+    <div class="spin" id="spin" hidden></div>
+    <img id="img" alt="Hoja de respuestas del examen" draggable="false">
+    <div id="tip" hidden>Pellizca para acercar · arrastra para mover</div>
+    <div id="msg" hidden></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ==========================  CONFIGURACIÓN  ==========================
+   base        : ruta donde están las carpetas de grupos.
+                 "" = misma carpeta que este archivo.
+                 Ej. "examenes/" si los subes a una subcarpeta.
+   whatsapp    : número con lada de país y SIN signos. Ej. "5216561234567".
+   email       : correo del profesor(a). Ej. "profe@escuela.edu.mx".
+   clavePorGrupo: candado opcional por grupo (protección básica, NO seguridad real).
+                 Ej. { "Tercero C": "cimat2026" }
+   ==================================================================== */
+const CONFIG = {
+  base: "",
+  whatsapp: "",
+  email: "",
+  clavePorGrupo: {}
+};
+
+const DATA = [
+  {"g": "Segundo D", "gr": "2°", "gu": "D", "n": "Batista Lobo Guerrero, Miguel Ángel", "f": "BATISTA__LOBO_GUERRERO__MIGUEL_ANGEL.jpg"},
+  {"g": "Segundo D", "gr": "2°", "gu": "D", "n": "Cano Licano, Thomas Eduardo", "f": "CANO__LICANO__THOMAS_EDUARDO.jpg"},
+  {"g": "Segundo D", "gr": "2°", "gu": "D", "n": "Carrasco Carlos, Janna Elizabeth", "f": "CARRASCO__CARLOS__JANNA_ELIZABETH.jpg"},
+  {"g": "Segundo D", "gr": "2°", "gu": "D", "n": "Chávez Trevizo, Ian Hervey", "f": "CHAVEZ__TREVIZO__IAN_HERVEY.jpg"},
+  {"g": "Segundo D", "gr": "2°", "gu": "D", "n": "Domínguez Borunda, Nicole Regina", "f": "DOMINGUEZ__BORUNDA__NICOLE_REGINA.jpg"},
+  {"g": "Segundo D", "gr": "2°", "gu": "D", "n": "Enríquez Durán, Daniela Rocío", "f": "ENRIQUEZ__DURAN__DANIELA_ROCIO.jpg"},
+  {"g": "Segundo D", "gr": "2°", "gu": "D", "n": "Escarcega Miranda, Miriam Yuleth", "f": "ESCARCEGA__MIRANDA__MIRIAM_YULETH.jpg"},
+  {"g": "Segundo D", "gr": "2°", "gu": "D", "n": "Estrada Loya, Betzaida Yamileth", "f": "ESTRADA__LOYA__BETZAIDA_YAMILETH.jpg"},
+  {"g": "Segundo D", "gr": "2°", "gu": "D", "n": "Flores Romero, Ximena Ahilani", "f": "FLORES__ROMERO__XIMENA_AHILANI.jpg"},
+  {"g": "Segundo D", "gr": "2°", "gu": "D", "n": "Gaspar López, Yatziri Denisse", "f": "GASPAR__LOPEZ__YATZIRI_DENISSE.jpg"},
+  {"g": "Segundo D", "gr": "2°", "gu": "D", "n": "Gutiérrez Salmeron, Yarabi Ariana", "f": "GUTIERREZ__SALMERON__YARABI_ARIANA.jpg"},
+  {"g": "Segundo D", "gr": "2°", "gu": "D", "n": "Lozano Carrasco, Maika Denisse", "f": "LOZANO__CARRASCO__MAIKA_DENISSE.jpg"},
+  {"g": "Segundo D", "gr": "2°", "gu": "D", "n": "Macías Tapia, Axel Osbaldo", "f": "MACIAS__TAPIA__AXEL_OSBALDO.jpg"},
+  {"g": "Segundo D", "gr": "2°", "gu": "D", "n": "Maldonado Castro, Axel Giovanni", "f": "MALDONADO__CASTRO__AXEL_GIOVANNI.jpg"},
+  {"g": "Segundo D", "gr": "2°", "gu": "D", "n": "Martínez Castillo, Rodrigo", "f": "MARTINEZ__CASTILLO__RODRIGO.jpg"},
+  {"g": "Segundo D", "gr": "2°", "gu": "D", "n": "Martínez Pérez, Luis Arturo", "f": "MARTINEZ__PEREZ__LUIS_ARTURO.jpg"},
+  {"g": "Segundo D", "gr": "2°", "gu": "D", "n": "Martínez Ríos, Yoana Yulisa", "f": "MARTINEZ__RIOS__YOANA_YULISA.jpg"},
+  {"g": "Segundo D", "gr": "2°", "gu": "D", "n": "Meraz Rascón, Lilly Iveth", "f": "MERAZ__RASCON__LILLY_IVETH.jpg"},
+  {"g": "Segundo D", "gr": "2°", "gu": "D", "n": "Meraz Tovali, Aranza", "f": "MERAZ__TOVALI__ARANZA.jpg"},
+  {"g": "Segundo D", "gr": "2°", "gu": "D", "n": "Miramontes Corral, Itzel Yoana", "f": "MIRAMONTES__CORRAL__ITZEL_YOANA.jpg"},
+  {"g": "Segundo D", "gr": "2°", "gu": "D", "n": "Miramontes Fierro, Carlos Alexander", "f": "MIRAMONTES__FIERRO__CARLOS_ALEXANDER.jpg"},
+  {"g": "Segundo D", "gr": "2°", "gu": "D", "n": "Ochoa Castillo, Rafael Alejandro", "f": "OCHOA__CASTILLO__RAFAEL_ALEJANDRO.jpg"},
+  {"g": "Segundo D", "gr": "2°", "gu": "D", "n": "Orozco Gómez, Kimberly Jaqueline", "f": "OROZCO__GOMEZ__KIMBERLY_JAQUELINE.jpg"},
+  {"g": "Segundo D", "gr": "2°", "gu": "D", "n": "Palma Muñoz, Jaquelin Ivonne", "f": "PALMA__MUNOZ__JAQUELIN_IVONNE.jpg"},
+  {"g": "Segundo D", "gr": "2°", "gu": "D", "n": "Parra Armendariz, Rubén Andree", "f": "PARRA__ARMENDARIZ__RUBEN_ANDREE.jpg"},
+  {"g": "Segundo D", "gr": "2°", "gu": "D", "n": "Parra Estrada, Abraham Alfonso", "f": "PARRA__ESTRADA__ABRAHAM_ALFONSO.jpg"},
+  {"g": "Segundo D", "gr": "2°", "gu": "D", "n": "Tapia Burrola, Jeisol Itzel", "f": "TAPIA__BURROLA__JEISOL_ITZEL.jpg"},
+  {"g": "Segundo D", "gr": "2°", "gu": "D", "n": "Vázquez Pascualillo, Gael Andrés", "f": "VAZQUEZ__PASCUALILLO__GAEL_ANDRES.jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "Anchondo Martínez, Ambar Sofía", "f": "ANCHONDO__MARTINEZ__AMBAR_SOFIA.jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "Arrieta Castillo, Kenia Isabel", "f": "ARRIETA__CASTILLO__KENIA_ISABEL.jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "Avalos Ruiz, Lucero", "f": "AVALOS__RUIZ__LUCERO.jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "Barragán Villagran, Santiago Hiram", "f": "BARRAGAN__VILLAGRAN__SANTIAGO_HIRAM.jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "Benítez Pérez, Josué", "f": "BENITEZ__PEREZ__JOSUE.jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "Castillo Daniel, Josué David", "f": "CASTILLO__DANIEL__JOSUE_DAVID.jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "Cisneros Ortiz, Brian Isai", "f": "CISNEROS__ORTIZ__BRIAN_ISAI.jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "Díaz Patiño, Luna Danae", "f": "DIAZ__PATINO__LUNA_DANAE.jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "Domínguez Caro, Luis Daniel", "f": "DOMINGUEZ__CARO__LUIS_DANIEL.jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "Domínguez Cuesta, José Efraín", "f": "DOMINGUEZ__CUESTA__JOSE_EFRAIN.jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "Domínguez Domínguez, Marvin Josefat", "f": "DOMINGUEZ__DOMINGUEZ__MARVIN_JOSEFAT.jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "Enríquez Durán, Edwin Alejandro", "f": "ENRIQUEZ__DURAN__EDWIN_ALEJANDRO.jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "Enríquez López, Reyna Clarisa", "f": "ENRIQUEZ__LOPEZ__REYNA_CLARISA.jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "Enríquez Pérez, Michel Alexa", "f": "ENRIQUEZ__PEREZ__MICHEL_ALEXA.jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "González Luevano, Yamileth", "f": "GONZALEZ__LUEVANO__YAMILETH.jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "González Rubi, Alex David", "f": "GONZALEZ__RUBI__ALEX_DAVID.jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "González Soto, Carlos Iram", "f": "GONZALEZ__SOTO__CARLOS_IRAM.jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "González Valenzuela, Joseph Jovan", "f": "GONZALEZ__VALENZUELA__JOSEPH_JOVAN.jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "Hermosillo Rodríguez, Hanna Oyuki", "f": "HERMOSILLO__RODRIGUEZ__HANNA_OYUKI.jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "López Mendoza, Xavier Santiago", "f": "LOPEZ__MENDOZA__XAVIER_SANTIAGO.jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "Martínez Medrano, Camila", "f": "MARTINEZ__MEDRANO__CAMILA.jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "Medrano Quiñonez, Gerson Gael", "f": "MEDRANO__QUINONEZ__GERSON_GAEL(F).jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "Mendoza Gandara, Yandel", "f": "MENDOZA__GANDARA__YANDEL.jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "Momaca González, Irvin Yahel", "f": "MOMACA__GONZALEZ__IRVIN_YAHEL.jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "Moreno Loredo, Ángel Manuel", "f": "MORENO__LOREDO__ANGEL_MANUEL.jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "Ordoñez Meraz, Alondra Isabel", "f": "ORDONEZ__MERAZ__ALONDRA_ISABEL.jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "Ortiz Domínguez, Kenia Idaly", "f": "ORTIZ__DOMINGUEZ__KENIA_IDALY.jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "Quintana González, Sergio Ronaldo", "f": "QUINTANA__GONZALEZ__SERGIO_RONALDO.jpg"},
+  {"g": "Tercero A", "gr": "3°", "gu": "A", "n": "Sánchez Rascón, Ivana Guadalupe", "f": "SANCHEZ__RASCON__IVANA_GUADALUPE.jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "Banda Hernández, Kurt Alonso", "f": "BANDA__HERNANDEZ__KURT_ALONSO.jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "Barraza Castillo, Ricardo Emmanuel", "f": "BARRAZA__CASTILLO__RICARDO_EMMANUEL.jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "Batista Morales, Diego Alexis", "f": "BATISTA__MORALES__DIEGO_ALEXIS.jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "Beltrán Ayala, Caleb Joel", "f": "BELTRAN__AYALA__CALEB_JOEL.jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "Castillo Chávez, Alejandra", "f": "CASTILLO__CHAVEZ__ALEJANDRA.jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "Cataño Escalante, Itzel Denali", "f": "CATANO__ESCALANTE__ITZEL_DENALI.jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "Córdova Cruz, Eduardo", "f": "CORDOVA__CRUZ__EDUARDO.jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "Corral Ibarra, Jesse Sebastián", "f": "CORRAL__IBARRA__JESSE_SEBASTIAN.jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "Domínguez Chavira, Kimberly", "f": "DOMINGUEZ__CHAVIRA__KIMBERLY.jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "Domínguez Rodríguez, Natalia", "f": "DOMINGUEZ__RODRIGUEZ__NATALIA.jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "Duarte Márquez, Poleth Eylen", "f": "DUARTE__MARQUEZ__POLETH_EYLEN.jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "Durán Marbán, Leonardo Tadeo", "f": "DURAN__MARBAN__LEONARDO_TADEO_(C).jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "Gil García, Jorge Alberto", "f": "GIL__GARCIA__JORGE_ALBERTO.jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "González Villalobos, Sarabi Salomé", "f": "GONZALEZ__VILLALOBOS__SARABI_SALOME.jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "Gutiérrez González, Gerardo", "f": "GUTIERREZ__GONZALEZ__GERARDO.jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "Hernández Parra, Katniss Helena", "f": "HERNANDEZ__PARRA__KATNISS_HELENA.jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "Hernández Rascón, Roous Celeste", "f": "HERNANDEZ__RASCON__ROOUS_CELESTE_(E).jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "Hernández Silva, Marco Antonio", "f": "HERNANDEZ__SILVA__MARCO_ANTONIO.jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "Jiménez Talamantes, Abril", "f": "JIMENEZ__TALAMANTES__ABRIL.jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "Ledezma Cera, Crosby Alejandro", "f": "LEDEZMA__CERA__CROSBY_ALEJANDRO.jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "Morales Rodríguez, Joselyn Ivon", "f": "MORALES__RODRIGUEZ__JOSELYN_IVON.jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "Nevárez Granilla, Danna Paola", "f": "NEVAREZ__GRANILLA__DANNA_PAOLA.jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "Ortiz Rascón, Zoe Melissa", "f": "ORTIZ__RASCON__ZOE_MELISSA.jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "Perea González, Carlos Yael", "f": "PEREA__GONZALEZ__CARLOS_YAEL.jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "Ramírez Delgado, Oscar Manuel", "f": "RAMIREZ__DELGADO__OSCAR_MANUEL.jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "Romero Olivas, Luis Diego", "f": "ROMERO__OLIVAS__LUIS_DIEGO.jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "Soto Estrada, Jesús Emiliano", "f": "SOTO__ESTRADA__JESUS_EMILIANO.jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "Valdez Fuentes, Carlos Daniel", "f": "VALDEZ__FUENTES__CARLOS_DANIEL.jpg"},
+  {"g": "Tercero B", "gr": "3°", "gu": "B", "n": "Zamarrón Delgado, Santiago", "f": "ZAMARRON__DELGADO__SANTIAGO.jpg"},
+  {"g": "Tercero C", "gr": "3°", "gu": "C", "n": "Arguello Estrada, Darío Alberto", "f": "ARGUELLO__ESTRADA__DARIO_ALBERTO.jpg"},
+  {"g": "Tercero C", "gr": "3°", "gu": "C", "n": "Arvizu López, Damián", "f": "ARVIZU__LOPEZ__DAMIAN.jpg"},
+  {"g": "Tercero C", "gr": "3°", "gu": "C", "n": "Baez Cárdenas, Gael Ramses", "f": "BAEZ__CARDENAS__GAEL_RAMSES.jpg"},
+  {"g": "Tercero C", "gr": "3°", "gu": "C", "n": "Bañuelos González, Ian Santiago", "f": "BANUELOS__GONZALEZ__IAN_SANTIAGO.jpg"},
+  {"g": "Tercero C", "gr": "3°", "gu": "C", "n": "Blanco Vázquez, Demian Alexander", "f": "BLANCO__VAZQUEZ__DEMIAN_ALEXANDER.jpg"},
+  {"g": "Tercero C", "gr": "3°", "gu": "C", "n": "Camacho González, Heidy Karina", "f": "CAMACHO__GONZALEZ__HEIDY_KARINA.jpg"},
+  {"g": "Tercero C", "gr": "3°", "gu": "C", "n": "Fong Ayala, Aniel Gael", "f": "FONG__AYALA__ANIEL_GAEL.jpg"},
+  {"g": "Tercero C", "gr": "3°", "gu": "C", "n": "Frías Rojas, Enoc Santiago", "f": "FRIAS__ROJAS__ENOC_SANTIAGO.jpg"},
+  {"g": "Tercero C", "gr": "3°", "gu": "C", "n": "González Juárez, Flor", "f": "GONZALEZ__JUAREZ__FLOR.jpg"},
+  {"g": "Tercero C", "gr": "3°", "gu": "C", "n": "Herrera Urbina, Ashley Dayana", "f": "HERRERA__URBINA__ASHLEY_DAYANA.jpg"},
+  {"g": "Tercero C", "gr": "3°", "gu": "C", "n": "Macías Simental, Aylin Mairely", "f": "MACIAS__SIMENTAL__AYLIN_MAIRELY.jpg"},
+  {"g": "Tercero C", "gr": "3°", "gu": "C", "n": "Maldonado González, Mateo Arturo", "f": "MALDONADO__GONZALEZ__MATEO_ARTURO(F).jpg"},
+  {"g": "Tercero C", "gr": "3°", "gu": "C", "n": "Marín Durán, Carlos Daniel", "f": "MARIN__DURAN__CARLOS_DANIEL.jpg"},
+  {"g": "Tercero C", "gr": "3°", "gu": "C", "n": "Martínez Domínguez, José Damián", "f": "MARTINEZ__DOMINGUEZ__JOSE_DAMIAN.jpg"},
+  {"g": "Tercero C", "gr": "3°", "gu": "C", "n": "Mendoza Castillo, Azul Fernanda", "f": "MENDOZA__CASTILLO__AZUL_FERNANDA.jpg"},
+  {"g": "Tercero C", "gr": "3°", "gu": "C", "n": "Mendoza Estrada, Adán Alejandro", "f": "MENDOZA__ESTRADA__ADAN_ALEJANDRO.jpg"},
+  {"g": "Tercero C", "gr": "3°", "gu": "C", "n": "Ochoa Vargas, César Iván", "f": "OCHOA__VARGAS__CESAR_IVAN.jpg"},
+  {"g": "Tercero C", "gr": "3°", "gu": "C", "n": "Ontiveros Vega, Reyna Denisse", "f": "ONTIVEROS__VEGA__REYNA_DENISSE.jpg"},
+  {"g": "Tercero C", "gr": "3°", "gu": "C", "n": "Pimentel Frías, Alan Santiago", "f": "PIMENTEL__FRIAS__ALAN_SANTIAGO.jpg"},
+  {"g": "Tercero C", "gr": "3°", "gu": "C", "n": "Ramos Díaz, Dilan Aarón", "f": "RAMOS__DIAZ__DILAN_AARON.jpg"},
+  {"g": "Tercero C", "gr": "3°", "gu": "C", "n": "Regalado Baca, Edgar", "f": "REGALADO__BACA__EDGAR_(E).jpg"},
+  {"g": "Tercero C", "gr": "3°", "gu": "C", "n": "Rodríguez León, Dilan Francisco", "f": "RODRIGUEZLEON_DILAN_FRANCISCO.jpg"},
+  {"g": "Tercero C", "gr": "3°", "gu": "C", "n": "Rodríguez Trenti, Manuel Aarón", "f": "RODRIGUEZ__TRENTI__MANUEL_AARON.jpg"},
+  {"g": "Tercero C", "gr": "3°", "gu": "C", "n": "Ruiz Irigoyen, Víctor Ismael", "f": "RUIZ__IRIGOYEN__VICTOR_ISMAEL(B).jpg"},
+  {"g": "Tercero C", "gr": "3°", "gu": "C", "n": "Torres Bustillos, Génesis Nicole", "f": "TORRES__BUSTILLOS__GENESIS_NICOLE.jpg"},
+  {"g": "Tercero C", "gr": "3°", "gu": "C", "n": "Torres Carter, María Camila", "f": "TORRESCARTERMARIA_CAMILA.jpg"},
+  {"g": "Tercero C", "gr": "3°", "gu": "C", "n": "Valenzuela Aguilera, Camila", "f": "VALENZUELA__AGUILERA__CAMILA.jpg"},
+  {"g": "Tercero D", "gr": "3°", "gu": "D", "n": "Álvarez Delgado, Diego", "f": "ALVAREZ__DELGADO__DIEGO.jpg"},
+  {"g": "Tercero D", "gr": "3°", "gu": "D", "n": "Atondo Grijalva, Dailyn Fernanda", "f": "ATONDO__GRIJALVA__DAILYN_FERNANDA.jpg"},
+  {"g": "Tercero D", "gr": "3°", "gu": "D", "n": "Barragán Pinela, Brissa Paulett", "f": "BARRAGAN__PINELA__BRISSA_PAULETT.jpg"},
+  {"g": "Tercero D", "gr": "3°", "gu": "D", "n": "Bustillos González, Kevin Yahel", "f": "BUSTILLOS__GONZALEZ__KEVIN_YAHEL.jpg"},
+  {"g": "Tercero D", "gr": "3°", "gu": "D", "n": "Castillo Vargas, Gael Alejandro", "f": "CASTILLO__VARGAS__GAEL_ALEJANDRO.jpg"},
+  {"g": "Tercero D", "gr": "3°", "gu": "D", "n": "Delgado Delgado, Dalia Melissa", "f": "DELGADO__DELGADO__DALIA_MELISSA.jpg"},
+  {"g": "Tercero D", "gr": "3°", "gu": "D", "n": "Domínguez Romero, Yeimi Nahomi", "f": "DOMINGUEZ__ROMERO__YEIMI_NAHOMI.jpg"},
+  {"g": "Tercero D", "gr": "3°", "gu": "D", "n": "Gallarzo Orozco, Abdiel Yamir", "f": "GALLARZO__OROZCO__ABDIEL_YAMIR.jpg"},
+  {"g": "Tercero D", "gr": "3°", "gu": "D", "n": "García Vega, Aracely Alejandra", "f": "GARCIA__VEGA__ARACELY_ALEJANDRA.jpg"},
+  {"g": "Tercero D", "gr": "3°", "gu": "D", "n": "Gastelum Zubia, Nahomi", "f": "GASTELUM__ZUBIA__NAHOMI.jpg"},
+  {"g": "Tercero D", "gr": "3°", "gu": "D", "n": "Gutiérrez Rascón, Alexa Isabella", "f": "GUTIERREZ__RASCON__ALEXA_ISABELLA.jpg"},
+  {"g": "Tercero D", "gr": "3°", "gu": "D", "n": "Hernández Hernández, Brandon Octavio", "f": "HERNANDEZ__HERNANDEZ__BRANDON_OCTAVIO.jpg"},
+  {"g": "Tercero D", "gr": "3°", "gu": "D", "n": "Hernández Varela, Gael Alejandro", "f": "HERNANDEZ__VARELA__GAEL_ALEJANDRO.jpg"},
+  {"g": "Tercero D", "gr": "3°", "gu": "D", "n": "Jiménez Martínez, Santiago Anuar", "f": "JIMENEZ__MARTINEZ__SANTIAGO_ANUAR.jpg"},
+  {"g": "Tercero D", "gr": "3°", "gu": "D", "n": "Lugo Morris, Danna Cristell", "f": "LUGO__MORRIS__DANNA_CRISTELL.jpg"},
+  {"g": "Tercero D", "gr": "3°", "gu": "D", "n": "Mares Cruz, Daniel Adrián", "f": "MARES__CRUZ__DANIEL_ADRIAN.jpg"},
+  {"g": "Tercero D", "gr": "3°", "gu": "D", "n": "Ordoñez Armenta, Jireh Danely", "f": "ORDONEZ__ARMENTA__JIREH_DANELY.jpg"},
+  {"g": "Tercero D", "gr": "3°", "gu": "D", "n": "Ortiz Arreola, Bianca Sarahi", "f": "ORTIZ__ARREOLA__BIANCA_SARAHI.jpg"},
+  {"g": "Tercero D", "gr": "3°", "gu": "D", "n": "Palomino Parra, Nahomi Aylin", "f": "PALOMINO__PARRA__NAHOMI_AYLIN.jpg"},
+  {"g": "Tercero D", "gr": "3°", "gu": "D", "n": "Ramírez Arellanes, Merary Yoana", "f": "RAMIREZ__ARELLANES__MERARY_YOANA.jpg"},
+  {"g": "Tercero D", "gr": "3°", "gu": "D", "n": "Ramírez Ornelas, Mitzy Yuzaleth", "f": "RAMIREZ__ORNELAS__MITZY_YUZALETH.jpg"},
+  {"g": "Tercero D", "gr": "3°", "gu": "D", "n": "Rodríguez Chavira, Nicole Samantha", "f": "RODRIGUEZ__CHAVIRA__NICOLE_SAMANTHA.jpg"},
+  {"g": "Tercero D", "gr": "3°", "gu": "D", "n": "Rodríguez Escarcega, Eduardo", "f": "RODRIGUEZ__ESCARCEGA__EDUARDO.jpg"},
+  {"g": "Tercero D", "gr": "3°", "gu": "D", "n": "Rojo Quezada, Deisy Nahomy", "f": "ROJO__QUEZADA__DEISY_NAHOMY.jpg"},
+  {"g": "Tercero D", "gr": "3°", "gu": "D", "n": "Rubio Ortega, María Fernanda", "f": "RUBIO__ORTEGA__MARIA_FERNANDA.jpg"},
+  {"g": "Tercero D", "gr": "3°", "gu": "D", "n": "Soria Julián, Miranda", "f": "SORIA__JULIAN__MIRANDA.jpg"},
+  {"g": "Tercero D", "gr": "3°", "gu": "D", "n": "Trujillo Saucedo, Rodrigo Obed", "f": "TRUJILLO__SAUCEDO__RODRIGO_OBED.jpg"},
+  {"g": "Tercero D", "gr": "3°", "gu": "D", "n": "Vega Cruz, Qoholet Michelle", "f": "VEGA__CRUZ__QOHOLET_MICHELLE.jpg"},
+  {"g": "Tercero E", "gr": "3°", "gu": "E", "n": "Acosta Pascualillo, Jesús Alan", "f": "ACOSTA__PASCUALILLO__JESUS_ALAN.jpg"},
+  {"g": "Tercero E", "gr": "3°", "gu": "E", "n": "Aranda, Adrián Andrés", "f": "ARANDA___ADRIAN_ANDRES.jpg"},
+  {"g": "Tercero E", "gr": "3°", "gu": "E", "n": "Bañuelos Trujillo, Víctor Armando", "f": "BANUELOS__TRUJILLO__VICTOR_ARMANDO.jpg"},
+  {"g": "Tercero E", "gr": "3°", "gu": "E", "n": "Barraza Castillo, Enrique Alejandro", "f": "BARRAZA__CASTILLO__ENRIQUE_ALEJANDRO.jpg"},
+  {"g": "Tercero E", "gr": "3°", "gu": "E", "n": "Borjas Andujo, Fidel Alejandro", "f": "BORJAS__ANDUJO__FIDEL_ALEJANDRO.jpg"},
+  {"g": "Tercero E", "gr": "3°", "gu": "E", "n": "Bringas Franco, Evelyn", "f": "BRINGAS__FRANCO__EVELYN.jpg"},
+  {"g": "Tercero E", "gr": "3°", "gu": "E", "n": "Cervantes Muñoz, Alexander Ramón", "f": "CERVANTES__MUNOZ__ALEXANDER_RAMON.jpg"},
+  {"g": "Tercero E", "gr": "3°", "gu": "E", "n": "Domínguez Lechuga, Angélica Nicole", "f": "DOMINGUEZ__LECHUGA__ANGELICA_NICOLE.jpg"},
+  {"g": "Tercero E", "gr": "3°", "gu": "E", "n": "Gastelum Castillo, Ian Said", "f": "GASTELUM__CASTILLO__IAN_SAID.jpg"},
+  {"g": "Tercero E", "gr": "3°", "gu": "E", "n": "Hernández Vázquez, Javier Omar", "f": "HERNANDEZ__VAZQUEZ_JAVIER_OMAR.jpg"},
+  {"g": "Tercero E", "gr": "3°", "gu": "E", "n": "Holguin Juárez, Ashley Lizeth", "f": "HOLGUIN__JUAREZ__ASHLEY_LIZETH.jpg"},
+  {"g": "Tercero E", "gr": "3°", "gu": "E", "n": "Martínez Mendoza, Marvin Gael", "f": "MARTINEZ__MENDOZA__MARVIN_GAEL.jpg"},
+  {"g": "Tercero E", "gr": "3°", "gu": "E", "n": "Mendoza González, Esmeralda", "f": "MENDOZA__GONZALEZ__ESMERALDA.jpg"},
+  {"g": "Tercero E", "gr": "3°", "gu": "E", "n": "Mendoza González, Liseth", "f": "MENDOZA__GONZALEZ__LISETH.jpg"},
+  {"g": "Tercero E", "gr": "3°", "gu": "E", "n": "Montes Álvarez, Aime", "f": "MONTES__ALVAREZ__AIME.jpg"},
+  {"g": "Tercero E", "gr": "3°", "gu": "E", "n": "Morales Portillo, Kassandra", "f": "MORALES__PORTILLO__KASSANDRA.jpg"},
+  {"g": "Tercero E", "gr": "3°", "gu": "E", "n": "Moreno Chávez, Bernabe", "f": "MORENO__CHAVEZ__BERNABE.jpg"},
+  {"g": "Tercero E", "gr": "3°", "gu": "E", "n": "Moreno López, José David", "f": "MORENO__LOPEZ__JOSE_DAVID.jpg"},
+  {"g": "Tercero E", "gr": "3°", "gu": "E", "n": "Orozco Miramontes, Samantha Paulette", "f": "OROZCO__MIRAMONTES__SAMANTHA_PAULETTE.jpg"},
+  {"g": "Tercero E", "gr": "3°", "gu": "E", "n": "Padilla Serrano, Jesús Alejandro", "f": "PADILLA__SERRANO__JESUS_ALEJANDRO.jpg"},
+  {"g": "Tercero E", "gr": "3°", "gu": "E", "n": "Ramírez Romero, Gael Alexander", "f": "RAMIREZ__ROMERO__GAEL_ALEXANDER.jpg"},
+  {"g": "Tercero E", "gr": "3°", "gu": "E", "n": "Rodríguez Castro, Prisila Asseneth", "f": "RODRIGUEZ__CASTRO__PRISILA_ASSENETH.jpg"},
+  {"g": "Tercero E", "gr": "3°", "gu": "E", "n": "Saucedo Valenzuela, Leonel Fabián", "f": "SAUCEDO__VALENZUELA__LEONEL_FABIAN.jpg"},
+  {"g": "Tercero E", "gr": "3°", "gu": "E", "n": "Servin Giron, Carlos Xavier", "f": "SERVIN__GIRON__CARLOS_XAVIER.jpg"},
+  {"g": "Tercero E", "gr": "3°", "gu": "E", "n": "Torres Peraza, Oliver Sahid", "f": "TORRES__PERAZA__OLIVER_SAHID.jpg"},
+  {"g": "Tercero E", "gr": "3°", "gu": "E", "n": "Torres Pérez, Nathalia", "f": "TORRES__PEREZ__NATHALIA.jpg"},
+  {"g": "Tercero E", "gr": "3°", "gu": "E", "n": "Vázquez Pérez, Juan Pablo", "f": "VAZQUEZ__PEREZ__JUAN_PABLO.jpg"},
+  {"g": "Tercero F", "gr": "3°", "gu": "F", "n": "Arroyo Ramos, Andrea Idaly", "f": "ARROYO__RAMOS__ANDREA_IDALY.jpg"},
+  {"g": "Tercero F", "gr": "3°", "gu": "F", "n": "Batista De La Cruz, Dania Nicol", "f": "BATISTA__DE_LA_CRUZ__DANIA_NICOL.jpg"},
+  {"g": "Tercero F", "gr": "3°", "gu": "F", "n": "Castillo Durán, Abril Ximena", "f": "CASTILLO__DURAN__ABRIL_XIMENA.jpg"},
+  {"g": "Tercero F", "gr": "3°", "gu": "F", "n": "Cervantes Ochoa, Jesús Zaid", "f": "CERVANTES__OCHOA__JESUS_ZAID.jpg"},
+  {"g": "Tercero F", "gr": "3°", "gu": "F", "n": "Chávez Castro, Luis Ángel", "f": "CHAVEZ__CASTRO__LUIS_ANGEL.jpg"},
+  {"g": "Tercero F", "gr": "3°", "gu": "F", "n": "Cordero Cárdenas, Melany Natalia", "f": "CORDERO__CARDENAS__MELANY_NATALIA.jpg"},
+  {"g": "Tercero F", "gr": "3°", "gu": "F", "n": "Elizondo Nuñez, Irina Eleane", "f": "ELIZONDO__NUNEZ__IRINA_ELEANE.jpg"},
+  {"g": "Tercero F", "gr": "3°", "gu": "F", "n": "Gamez Cervantes, Yazmin Daniela", "f": "GAMEZ__CERVANTES__YAZMIN_DANIELA.jpg"},
+  {"g": "Tercero F", "gr": "3°", "gu": "F", "n": "García Prado, Jaime Andrés", "f": "GARCIA__PRADO__JAIME_ANDRES.jpg"},
+  {"g": "Tercero F", "gr": "3°", "gu": "F", "n": "González Cardona, Ikeer Tadeo", "f": "GONZALEZ__CARDONA__IKEER_TADEO.jpg"},
+  {"g": "Tercero F", "gr": "3°", "gu": "F", "n": "González Jiménez, Astrid Guadalupe", "f": "GONZALEZ__JIMENEZ__ASTRID_GUADALUPE.jpg"},
+  {"g": "Tercero F", "gr": "3°", "gu": "F", "n": "Grijalva Contreras, Luis Ervey", "f": "GRIJALVA__CONTRERAS__LUIS_ERVEY.jpg"},
+  {"g": "Tercero F", "gr": "3°", "gu": "F", "n": "Gutiérrez Cruz, Isaias Jacel", "f": "GUTIERREZ__CRUZ__ISAIAS_JACEL.jpg"},
+  {"g": "Tercero F", "gr": "3°", "gu": "F", "n": "Holguin Cano, Gael Fernando", "f": "HOLGUIN__CANO__GAEL_FERNANDO.jpg"},
+  {"g": "Tercero F", "gr": "3°", "gu": "F", "n": "Mandieta Serna, Jesús Leonardo", "f": "MANDIETA__SERNA__JESUS_LEONARDO.jpg"},
+  {"g": "Tercero F", "gr": "3°", "gu": "F", "n": "Nevárez Jiménez, Susana Guadalupe", "f": "NEVAREZ__JIMENEZ__SUSANA_GUADALUPE.jpg"},
+  {"g": "Tercero F", "gr": "3°", "gu": "F", "n": "Olivas Meraz, Esteban", "f": "OLIVAS__MERAZ__ESTEBAN.jpg"},
+  {"g": "Tercero F", "gr": "3°", "gu": "F", "n": "Olivas Piñuelas, Yuliana", "f": "OLIVAS__PINUELAS__YULIANA.jpg"},
+  {"g": "Tercero F", "gr": "3°", "gu": "F", "n": "Perea Chaparro, Axel Ismael", "f": "PEREA__CHAPARRO__AXEL_ISMAEL.jpg"},
+  {"g": "Tercero F", "gr": "3°", "gu": "F", "n": "Pérez Macías, Edgar Mateo", "f": "PEREZ__MACIAS__EDGAR_MATEO.jpg"},
+  {"g": "Tercero F", "gr": "3°", "gu": "F", "n": "Renteria Monge, Anahy", "f": "RENTERIA__MONGE__ANAHY.jpg"},
+  {"g": "Tercero F", "gr": "3°", "gu": "F", "n": "Reyes Castro, Axel Raúl", "f": "REYES__CASTRO__AXEL_RAUL.jpg"},
+  {"g": "Tercero F", "gr": "3°", "gu": "F", "n": "Reza Rodríguez, Daneiry Sofía", "f": "REZA__RODRIGUEZ__DANEIRY_SOFIA.jpg"},
+  {"g": "Tercero F", "gr": "3°", "gu": "F", "n": "Santana Torres, Leonardo", "f": "SANTANA__TORRES__LEONARDO.jpg"},
+  {"g": "Tercero F", "gr": "3°", "gu": "F", "n": "Sayto Cisneros, Aylin Dayana", "f": "SAYTO__CISNEROS__AYLIN_DAYANA.jpg"},
+  {"g": "Tercero F", "gr": "3°", "gu": "F", "n": "Soto Rascón, Ariel Santiago", "f": "SOTO__RASCON__ARIEL_SANTIAGO.jpg"},
+  {"g": "Tercero F", "gr": "3°", "gu": "F", "n": "Zepeda Jiménez, Jesús Leonel", "f": "ZEPEDA__JIMENEZ__JESUS_LEONEL_(C).jpg"}
+];
+
+const META = {
+  "Segundo D": {
+    "fecha": "jueves 5 de noviembre de 2026",
+    "ver": "",
+    "nq": 15
+  },
+  "Tercero A": {
+    "fecha": "miércoles 4 de noviembre de 2026",
+    "ver": "v2",
+    "nq": 26
+  },
+  "Tercero B": {
+    "fecha": "miércoles 4 de noviembre de 2026",
+    "ver": "v1",
+    "nq": 26
+  },
+  "Tercero C": {
+    "fecha": "miércoles 4 de noviembre de 2026",
+    "ver": "v3",
+    "nq": 26
+  },
+  "Tercero D": {
+    "fecha": "miércoles 4 de noviembre de 2026",
+    "ver": "v1",
+    "nq": 26
+  },
+  "Tercero E": {
+    "fecha": "miércoles 4 de noviembre de 2026",
+    "ver": "v2",
+    "nq": 26
+  },
+  "Tercero F": {
+    "fecha": "miércoles 4 de noviembre de 2026",
+    "ver": "v3",
+    "nq": 26
+  }
+};
+
+/* ------------------------- utilidades ------------------------- */
+const $ = (s) => document.querySelector(s);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const pad2 = (n) => String(n).padStart(2, "0");
+
+const gradoSel = $("#grado"), grupoSel = $("#grupo"), alumnoSel = $("#alumno");
+const verBtn = $("#ver"), hint = $("#hint"), form = $("#form");
+const viewer = $("#viewer"), stage = $("#stage"), img = $("#img");
+const spin = $("#spin"), msg = $("#msg"), tip = $("#tip");
+const vName = $("#vName"), vMeta = $("#vMeta");
+const btnDl = $("#btnDl"), btnDuda = $("#btnDuda");
+
+let actual = null;            // entrada seleccionada
+let enHistorial = false;      // ya empujamos un estado para el visor
+let scale = 1, tx = 0, ty = 0, rot = 0;
+let cargando = 0;
+let tipTimer = null;
+const esTactil = window.matchMedia("(pointer: coarse)").matches;
+
+/* ------------------------- selectores ------------------------- */
+const grados = [...new Set(DATA.map(d => d.gr))];
+const gruposDe = (gr) => [...new Set(DATA.filter(d => d.gr === gr).map(d => d.gu))].sort();
+const alumnosDe = (gr, gu) => DATA.filter(d => d.gr === gr && d.gu === gu);
+
+function llenarGrado() {
+  gradoSel.innerHTML = grados.map(g => `<option value="${g}">${g}</option>`).join("");
+  gradoSel.value = grados[0];
+}
+function llenarGrupo() {
+  const gs = gruposDe(gradoSel.value);
+  grupoSel.innerHTML = gs.map(g => `<option value="${g}">${g}</option>`).join("");
+  grupoSel.disabled = gs.length === 0;
+}
+const claveGrupo = (gr, gu) => `${gr} ${gu}`;
+function llenarAlumno() {
+  const lista = alumnosDe(gradoSel.value, grupoSel.value);
+  if (!lista.length) {
+    alumnoSel.innerHTML = '<option value="">— Sin alumnos —</option>';
+    alumnoSel.disabled = true;
+    return;
+  }
+  alumnoSel.disabled = false;
+  alumnoSel.innerHTML = '<option value="">— Elige tu nombre —</option>' +
+    lista.map(d => {
+      const i = DATA.indexOf(d);
+      return `<option value="${i}">${d.n}</option>`;
+    }).join("");
+  alumnoSel.value = "";
+  verBtn.disabled = true;
+  hint.textContent = `${lista.length} alumnos en ${claveGrupo(gradoSel.value, grupoSel.value)}.`;
+  hint.classList.remove("error");
+}
+
+gradoSel.addEventListener("change", () => { llenarGrupo(); llenarAlumno(); });
+grupoSel.addEventListener("change", () => llenarAlumno());
+
+alumnoSel.addEventListener("change", () => {
+  const ok = alumnoSel.value !== "";
+  verBtn.disabled = !ok;
+  hint.classList.remove("error");
+  hint.textContent = ok ? "Listo. Puedes ver tu examen." : "Selecciona tu nombre.";
+  if (ok) abrir(Number(alumnoSel.value));
+});
+
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  if (alumnoSel.value === "") {
+    hint.textContent = "Selecciona tu nombre para ver tu examen.";
+    hint.classList.add("error");
+    return;
+  }
+  abrir(Number(alumnoSel.value));
+});
+
+/* ------------------------- apertura del visor ------------------------- */
+function urlsPara(d) {
+  const dir = CONFIG.base + encodeURIComponent(d.g) + "/";
+  const set = new Set();
+  for (const forma of ["NFC", "NFD"]) {
+    try { set.add(dir + encodeURIComponent(d.f.normalize(forma))); } catch (_) {}
+  }
+  set.add(dir + encodeURIComponent(d.f));
+  try { set.add(CONFIG.base + encodeURI(d.g + "/" + d.f)); } catch (_) {}
+  return [...set];
+}
+
+function abrir(idx) {
+  const d = DATA[idx];
+  if (!d) return;
+
+  const clave = CONFIG.clavePorGrupo[d.g];
+  if (clave) {
+    const dada = prompt(`Escribe la clave del grupo ${claveGrupo(d.gr, d.gu)}:`);
+    if (dada === null) return;
+    if (dada.trim() !== String(clave)) { alert("Clave incorrecta."); return; }
+  }
+
+  actual = d;
+  vName.textContent = d.n;
+  const m = META[d.g] || {};
+  vMeta.textContent = [
+    `Grupo ${claveGrupo(d.gr, d.gu)}`,
+    m.ver ? `Examen ${m.ver}` : "",
+    m.nq ? `${m.nq} reactivos` : "",
+    m.fecha || ""
+  ].filter(Boolean).join(" · ");
+  vMeta.title = vMeta.textContent;
+
+  rot = 0; scale = 1; tx = 0; ty = 0; aplicar();
+  msg.hidden = true;
+  spin.hidden = false;
+  img.classList.add("loading");
+  img.alt = `Hoja de respuestas de ${d.n}`;
+
+  const urls = urlsPara(d);
+  let i = 0;
+  cargando++;
+  const token = cargando;
+
+  const siguiente = () => {
+    if (i >= urls.length) {
+      spin.hidden = true;
+      mostrarError(urls[0]);
+      return;
+    }
+    img.src = urls[i++];
+  };
+
+  img.onload = () => {
+    if (token !== cargando) return;
+    spin.hidden = true;
+    msg.hidden = true;
+    img.classList.remove("loading");
+    ajustar();
+  };
+  img.onerror = () => { if (token === cargando) siguiente(); };
+
+  btnDl.href = urls[0];
+  btnDl.setAttribute("download", `Examen ${claveGrupo(d.gr, d.gu)} - ${d.n.replace(/,/g, "")}.jpg`);
+
+  configurarDuda(d);
+
+  viewer.hidden = false;
+  document.body.style.overflow = "hidden";
+
+  if (esTactil) {
+    let visto = null;
+    try { visto = sessionStorage.getItem("tipZoom"); } catch (_) {}
+    if (!visto) {
+      tip.hidden = false;
+      clearTimeout(tipTimer);
+      tipTimer = setTimeout(() => { tip.hidden = true; }, 4500);
+      try { sessionStorage.setItem("tipZoom", "1"); } catch (_) {}
+    }
+  }
+  if (!enHistorial) {
+    try { history.pushState({ visor: true }, ""); enHistorial = true; } catch (_) {}
+  }
+
+  siguiente();
+}
+
+function mostrarError(url) {
+  img.classList.remove("loading");
+  msg.innerHTML = "No se pudo cargar la imagen de tu examen.<br>" +
+    "Avísale a tu profesor(a).<br><small style='opacity:.75;word-break:break-all'>" +
+    url.replace(/</g, "&lt;") + "</small>";
+  msg.hidden = false;
+}
+
+function configurarDuda(d) {
+  const texto = `Hola, soy ${d.n} del grupo ${claveGrupo(d.gr, d.gu)}. ` +
+                `Tengo una duda sobre mi examen de Matemáticas del Trimestre 1: `;
+  if (CONFIG.whatsapp) {
+    btnDuda.href = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(texto)}`;
+    btnDuda.target = "_blank";
+    btnDuda.hidden = false;
+    btnDuda.textContent = "Tengo una duda";
+  } else if (CONFIG.email) {
+    btnDuda.href = `mailto:${CONFIG.email}` +
+      `?subject=${encodeURIComponent("Duda sobre mi examen · " + claveGrupo(d.gr, d.gu))}` +
+      `&body=${encodeURIComponent(texto)}`;
+    btnDuda.removeAttribute("target");
+    btnDuda.hidden = false;
+    btnDuda.textContent = "Tengo una duda";
+  } else {
+    btnDuda.hidden = true;
+  }
+}
+
+function cerrar() {
+  if (viewer.hidden) return;
+  viewer.hidden = true;
+  document.body.style.overflow = "";
+  img.removeAttribute("src");
+  actual = null;
+}
+
+/* cierra y, si habíamos empujado un estado de historial, lo retira
+   (así el botón "atrás" del teléfono sigue funcionando) */
+function cerrarUI() {
+  if (enHistorial) {
+    enHistorial = false;
+    try { history.back(); } catch (_) {}
+  }
+  cerrar();
+}
+
+/* ------------------------- zoom / paneo ------------------------- */
+function aplicar() {
+  img.style.transform = `translate(${tx}px, ${ty}px) scale(${scale}) rotate(${rot}deg)`;
+  $("#zoomLabel").textContent = Math.round(scale * 100) + "%";
+  stage.classList.toggle("zoomed", scale > 1.01);
+}
+
+/* Escala que hace que la hoja completa quepa en pantalla con la
+   rotación actual (1 = la imagen ya cabe gracias a object-fit:contain;
+   al girar 90° hay que reducir para que no se corte). */
+function escalaAjuste() {
+  const st = stage.getBoundingClientRect();
+  const nw = img.naturalWidth || 0, nh = img.naturalHeight || 0;
+  if (!st.width || !st.height || !nw || !nh) return 1;
+  if (rot % 180 === 0) return 1;
+  const s0 = Math.min(st.width / nw, st.height / nh);
+  return Math.min(st.width / (s0 * nh), st.height / (s0 * nw));
+}
+
+/* "Ajustar": hoja completa, respetando el giro */
+function ajustar() {
+  scale = escalaAjuste();
+  tx = 0; ty = 0;
+  aplicar();
+}
+
+function resetearZoom() {
+  rot = 0;
+  ajustar();
+}
+
+function zoomEn(clientX, clientY, factor) {
+  const r = stage.getBoundingClientRect();
+  const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  const px = (clientX - cx - tx) / scale;
+  const py = (clientY - cy - ty) / scale;
+  const min = escalaAjuste();
+  const ns = clamp(scale * factor, min, 8);
+  if (ns <= min * 1.001) { scale = min; tx = 0; ty = 0; }
+  else {
+    scale = ns;
+    tx = clientX - cx - px * ns;
+    ty = clientY - cy - py * ns;
+  }
+  limitarPaneo();
+  aplicar();
+}
+
+function limitarPaneo() {
+  const r = stage.getBoundingClientRect();
+  const mx = (r.width * scale) / 2, my = (r.height * scale) / 2;
+  tx = clamp(tx, -mx, mx);
+  ty = clamp(ty, -my, my);
+}
+
+stage.addEventListener("wheel", (e) => {
+  if (!actual) return;
+  e.preventDefault();
+  zoomEn(e.clientX, e.clientY, Math.exp(-e.deltaY * 0.0015));
+}, { passive: false });
+
+/* punteros: 1 = arrastrar, 2 = pellizcar */
+const pts = new Map();
+let pinch = null;
+
+stage.addEventListener("pointerdown", (e) => {
+  if (!actual) return;
+  stage.setPointerCapture(e.pointerId);
+  pts.set(e.pointerId, { x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, t0: Date.now() });
+  if (pts.size === 1) stage.classList.add("dragging");
+  if (pts.size === 2) pinch = null;
+});
+
+stage.addEventListener("pointermove", (e) => {
+  if (!actual || !pts.has(e.pointerId)) return;
+  const prev = pts.get(e.pointerId);
+  const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
+  pts.set(e.pointerId, { ...prev, x: e.clientX, y: e.clientY });
+
+  if (pts.size === 1) {
+    if (scale > 1.001) {
+      tx += dx; ty += dy;
+      limitarPaneo(); aplicar();
+    }
+  } else if (pts.size === 2) {
+    const [a, b] = [...pts.values()];
+    const dist = Math.hypot(a.x - b.x, a.y - b.y);
+    const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    if (pinch) {
+      if (dist > 0 && pinch.dist > 0) zoomEn(mid.x, mid.y, dist / pinch.dist);
+      tx += mid.x - pinch.mid.x; ty += mid.y - pinch.mid.y;
+      limitarPaneo(); aplicar();
+    }
+    pinch = { dist, mid };
+  }
+});
+
+let ultimoToque = { t: 0, x: 0, y: 0 };
+
+function soltar(e) {
+  const p = pts.get(e.pointerId);
+  pts.delete(e.pointerId);
+  if (pts.size < 2) pinch = null;
+  if (pts.size === 0) stage.classList.remove("dragging");
+  if (!p || !actual) return;
+
+  /* doble toque (o doble clic) para acercar / ajustar */
+  if (Math.hypot(e.clientX - p.x0, e.clientY - p.y0) > 12 || Date.now() - p.t0 > 400) return;
+  const ahora = Date.now();
+  const doble = ahora - ultimoToque.t < 380 &&
+                Math.hypot(e.clientX - ultimoToque.x, e.clientY - ultimoToque.y) < 40;
+  if (doble) {
+    ultimoToque = { t: 0, x: 0, y: 0 };
+    if (scale > escalaAjuste() * 1.5) ajustar();
+    else zoomEn(e.clientX, e.clientY, 2.5);
+  } else {
+    ultimoToque = { t: ahora, x: e.clientX, y: e.clientY };
+  }
+}
+stage.addEventListener("pointerup", soltar);
+stage.addEventListener("pointercancel", soltar);
+
+/* ------------------------- botones ------------------------- */
+$("#btnIn").addEventListener("click", () => {
+  const r = stage.getBoundingClientRect();
+  zoomEn(r.left + r.width / 2, r.top + r.height / 2, 1.35);
+});
+$("#btnOut").addEventListener("click", () => {
+  const r = stage.getBoundingClientRect();
+  zoomEn(r.left + r.width / 2, r.top + r.height / 2, 1 / 1.35);
+});
+$("#btnZoom").addEventListener("click", () => resetearZoom());
+$("#btnFit").addEventListener("click", () => ajustar());
+$("#btnRot").addEventListener("click", () => { rot = (rot + 90) % 360; ajustar(); });
+$("#btnPrint").addEventListener("click", () => window.print());
+$("#btnClose").addEventListener("click", cerrarUI);
+
+document.addEventListener("keydown", (e) => {
+  if (viewer.hidden) return;
+  if (e.key === "Escape") cerrarUI();
+  else if (e.key === "+" || e.key === "=") { const r = stage.getBoundingClientRect(); zoomEn(r.left + r.width/2, r.top + r.height/2, 1.35); }
+  else if (e.key === "-") { const r = stage.getBoundingClientRect(); zoomEn(r.left + r.width/2, r.top + r.height/2, 1/1.35); }
+  else if (e.key === "0") resetearZoom();
+  else if (e.key.toLowerCase() === "f") ajustar();
+  else if (e.key.toLowerCase() === "r") { rot = (rot + 90) % 360; ajustar(); }
+});
+
+window.addEventListener("popstate", () => {
+  enHistorial = false;
+  cerrar();
+});
+
+let resizeTimer = null;
+window.addEventListener("resize", () => {
+  if (viewer.hidden) return;
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    const min = escalaAjuste();
+    if (scale <= min + 0.001) ajustar();
+    else { limitarPaneo(); aplicar(); }
+  }, 120);
+});
+
+/* ------------------------- arranque ------------------------- */
+function iniciar() {
+  llenarGrado();
+  llenarGrupo();
+  llenarAlumno();
+  verBtn.disabled = true;
+  hint.textContent = "Selecciona grado, grupo y tu nombre.";
+  hint.classList.remove("error");
+}
+iniciar();
+
+/* El navegador a veces "recuerda" lo elegido al recargar: lo limpiamos
+   para que nadie vea por error el examen de otra persona. */
+window.addEventListener("pageshow", iniciar);
+window.addEventListener("load", () => requestAnimationFrame(iniciar));
+</script>
+</body>
+</html>
