@@ -959,7 +959,7 @@ stage.addEventListener("pointerdown", (e) => {
 });
 
 stage.addEventListener("pointermove", (e) => {
-  if (!actual || !pts.has(e.pointerId)) return;
+  if (viewer.hidden || !pts.has(e.pointerId)) return;
   const prev = pts.get(e.pointerId);
   const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
   pts.set(e.pointerId, { ...prev, x: e.clientX, y: e.clientY });
