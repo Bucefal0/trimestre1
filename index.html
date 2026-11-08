@@ -652,10 +652,12 @@ function urlsPara(d) {
 }
 
 let ultimoIdx = null;          // último alumno abierto (para volver desde la clave)
+let gradoDoc = null;           // grado del documento que se está viendo
 
 /* Abre cualquier documento en el visor: {titulo, meta, paginas[], descarga, alumno} */
 function mostrarDoc(doc) {
   actual = doc.alumno || null;
+  gradoDoc = doc.grado || null;
   vName.textContent = doc.titulo;
   vMeta.textContent = doc.meta;
   vMeta.title = doc.meta;
@@ -754,7 +756,8 @@ function abrir(idx) {
     ].filter(Boolean).join(" · "),
     paginas: urlsPara(d),
     descarga: `Examen ${claveGrupo(d.gr, d.gu)} - ${d.n.replace(/,/g, "")}.jpg`,
-    alumno: d
+    alumno: d,
+    grado: d.gr
   });
 }
 
@@ -767,7 +770,8 @@ function abrirClave(gr) {
     meta: c.meta,
     paginas: c.paginas.map(p => encodeURI(CONFIG.base + p)),
     descarga: c.archivo,
-    alumno: null
+    alumno: null,
+    grado: gr || gradoSel.value
   });
 }
 
@@ -802,7 +806,7 @@ function actualizarBotonClave() {
     btnClave.textContent = "🔑";
     btnClave.title = "Ver la clave de respuestas";
     btnClave.setAttribute("aria-label", "Ver la clave de respuestas");
-  } else if (ultimoIdx !== null) {
+  } else if (ultimoIdx !== null && DATA[ultimoIdx] && DATA[ultimoIdx].gr === gradoDoc) {
     btnClave.hidden = false;
     btnClave.textContent = "📄";
     btnClave.title = "Volver a mi examen";
