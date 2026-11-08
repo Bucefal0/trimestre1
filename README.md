@@ -11,6 +11,9 @@ imprimir. Se puede llegar a ellas de dos formas:
 - Botón **"Ver la clave de respuestas"** en la pantalla de inicio.
 - Botón **🔑** dentro del visor del examen (y **📄** para regresar a él).
 
+Las claves largas se dividen en páginas: usa la pastilla **‹ 1/2 ›** en la parte
+inferior (o las flechas del teclado).
+
 ## Publicación
 
 El sitio se sirve con **GitHub Pages** desde la rama `main`:
@@ -23,14 +26,16 @@ El sitio se sirve con **GitHub Pages** desde la rama `main`:
 index.html                  Página (contiene el índice de los 195 alumnos)
 Segundo D/                  Hojas de respuestas escaneadas (.jpg)
 Tercero A/ ... F/
-Claves/clave-2D.jpg         Clave 2.º D (generada de "Clave Examen 2D.pdf")
-Claves/clave-3ros.png       Clave 3.º   (generada de "Clave Examen 3ros.pptx")
+Claves/clave-2D.jpg         Clave 2.º D, reactivos 1-15 (de "Clave Examen 2D.pdf")
+Claves/clave-3ros-pag1.jpg  Clave 3.º, reactivos 1-14  (de "Clave Examen 3ros.pdf")
+Claves/clave-3ros-pag2.jpg  Clave 3.º, reactivos 15-26
 Grupos.xlsx                 Libro de calificaciones (fuente de nombres y resultados)
 ```
 
 Las claves se generaron como imagen para poder reutilizar el visor (zoom, ajuste,
-giro) en cualquier celular. Si actualizas el PDF o el PPTX hay que volver a
-exportar la imagen correspondiente en `Claves/`.
+giro) en cualquier celular. Cuando una clave tiene varias páginas aparece una
+pastilla flotante **‹ 1/2 ›** para cambiar de página. Si actualizas alguno de los
+PDF hay que volver a exportar su imagen en `Claves/`.
 
 ## Configuración
 

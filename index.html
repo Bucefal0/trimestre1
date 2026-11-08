@@ -122,11 +122,6 @@ button.secondary:active{transform:translateY(1px)}
 .tools .close{background:var(--err); border-color:var(--err); color:#fff}
 .tools .duda{background:var(--brand); border-color:var(--brand); color:#fff}
 #zoomLabel{min-width:56px; font-variant-numeric:tabular-nums}
-#pageInfo{
-  display:inline-flex; align-items:center; justify-content:center; min-width:44px;
-  font-size:.8rem; font-weight:600; color:#9fb3c8; font-variant-numeric:tabular-nums;
-}
-#pageInfo[hidden]{display:none}
 #stage{
   position:relative; flex:1 1 auto; min-height:0; overflow:hidden; touch-action:none;
   background:#07121c; cursor:grab; -webkit-tap-highlight-color:transparent;
@@ -153,6 +148,24 @@ button.secondary:active{transform:translateY(1px)}
   white-space:nowrap; pointer-events:none; max-width:92vw; z-index:3;
 }
 #tip[hidden]{display:none}
+#pager{
+  position:absolute; left:50%; transform:translateX(-50%);
+  bottom:max(14px, env(safe-area-inset-bottom)); z-index:4;
+  display:flex; align-items:center; gap:6px;
+  background:rgba(8,18,28,.9); border:1px solid rgba(255,255,255,.16);
+  border-radius:999px; padding:5px 6px; box-shadow:0 10px 26px rgba(0,0,0,.45);
+}
+#pager[hidden]{display:none}
+#pager button{
+  width:38px; height:38px; border-radius:50%; border:0; cursor:pointer;
+  background:rgba(255,255,255,.12); color:#e8f1f8; font-size:1.15rem; line-height:1;
+  font-family:inherit; display:grid; place-items:center;
+}
+#pager button:hover:not(:disabled){background:rgba(255,255,255,.22)}
+#pager button:disabled{opacity:.32; cursor:default}
+#pageInfo{min-width:46px; text-align:center; font-size:.82rem; font-weight:700;
+          color:#dbe7f0; font-variant-numeric:tabular-nums}
+#stage.con-pager #tip{bottom:calc(max(14px, env(safe-area-inset-bottom)) + 62px)}
 #msg{position:absolute; inset:auto 20px 20px; text-align:center; color:#ffd9de; font-size:.9rem;
      background:rgba(209,73,91,.16); border:1px solid rgba(209,73,91,.5); padding:12px 14px; border-radius:12px}
 #msg[hidden]{display:none}
@@ -199,7 +212,7 @@ button.secondary:active{transform:translateY(1px)}
   .wrap{display:none!important}
   #viewer{position:static; inset:auto; background:#fff; height:auto}
   .bar{display:none!important}
-  #tip{display:none!important}
+  #tip, #pager{display:none!important}
   #stage{position:static; display:block; overflow:visible; background:#fff; height:auto; min-height:0}
   #stage img{position:static; width:auto; height:auto; max-width:100%; object-fit:fill;
              transform:none!important; opacity:1}
@@ -267,9 +280,6 @@ button.secondary:active{transform:translateY(1px)}
       <button type="button" id="btnFit" title="Ajustar a pantalla (F)" aria-label="Ajustar">⤢</button>
       <a id="btnDl" href="#" download title="Descargar imagen" aria-label="Descargar">⤓</a>
       <button type="button" id="btnPrint" title="Imprimir" aria-label="Imprimir">🖨</button>
-      <button type="button" id="btnPrev" title="Página anterior" aria-label="Página anterior" hidden>‹</button>
-      <span id="pageInfo" hidden>1/1</span>
-      <button type="button" id="btnNext" title="Página siguiente" aria-label="Página siguiente" hidden>›</button>
       <button type="button" id="btnClave" title="Ver la clave de respuestas" aria-label="Clave de respuestas">🔑</button>
       <a id="btnDuda" class="duda" href="#" target="_blank" rel="noopener" hidden>Tengo una duda</a>
       <button type="button" class="close" id="btnClose" title="Cerrar (Esc)" aria-label="Cerrar">✕</button>
@@ -279,6 +289,11 @@ button.secondary:active{transform:translateY(1px)}
     <div class="spin" id="spin" hidden></div>
     <img id="img" alt="Hoja de respuestas del examen" draggable="false">
     <div id="tip" hidden>Pellizca para acercar · arrastra para mover</div>
+    <div id="pager" hidden>
+      <button type="button" id="btnPrev" title="Página anterior" aria-label="Página anterior">‹</button>
+      <span id="pageInfo">1/1</span>
+      <button type="button" id="btnNext" title="Página siguiente" aria-label="Página siguiente">›</button>
+    </div>
     <div id="msg" hidden></div>
   </div>
 </div>
@@ -551,7 +566,7 @@ const CLAVES = {
     titulo: "Clave de respuestas · Tercero",
     meta: "Matemáticas · Trimestre 1 · 26 reactivos · igual para todas las versiones",
     archivo: "Clave respuestas 3ros.jpg",
-    paginas: ["Claves/clave-3ros.png"]
+    paginas: ["Claves/clave-3ros-pag1.jpg", "Claves/clave-3ros-pag2.jpg"]
   }
 };
 
@@ -566,7 +581,7 @@ const viewer = $("#viewer"), stage = $("#stage"), img = $("#img");
 const spin = $("#spin"), msg = $("#msg"), tip = $("#tip");
 const vName = $("#vName"), vMeta = $("#vMeta");
 const btnDl = $("#btnDl"), btnDuda = $("#btnDuda"), btnClave = $("#btnClave");
-const btnPrev = $("#btnPrev"), btnNext = $("#btnNext"), pageInfo = $("#pageInfo");
+const btnPrev = $("#btnPrev"), btnNext = $("#btnNext"), pageInfo = $("#pageInfo"), pager = $("#pager");
 const verClaveBtn = $("#verClave");
 
 let actual = null;            // entrada seleccionada
@@ -670,8 +685,9 @@ function mostrarDoc(doc) {
 
   docUrls = doc.paginas.slice();            // ya vienen codificadas
   docPag = 0;
+  docNombre = doc.descarga;
   btnDl.href = docUrls[0];
-  btnDl.setAttribute("download", doc.descarga);
+  actualizarDescarga();
   actualizarPaginacion();
 
   if (doc.alumno) configurarDuda(doc.alumno);
@@ -776,13 +792,18 @@ function abrirClave(gr) {
 }
 
 /* ---------- paginación (solo si un documento tiene varias páginas) ---------- */
-let docUrls = [], docPag = 0;
+let docUrls = [], docPag = 0, docNombre = "";
+
+function actualizarDescarga() {
+  const multi = docUrls.length > 1;
+  const sufijo = multi ? ` - pag ${docPag + 1}` : "";
+  btnDl.setAttribute("download", docNombre.replace(/(\.[a-z]+)$/i, `${sufijo}$1`));
+}
 
 function actualizarPaginacion() {
   const multi = docUrls.length > 1;
-  btnPrev.hidden = !multi;
-  btnNext.hidden = !multi;
-  pageInfo.hidden = !multi;
+  pager.hidden = !multi;
+  stage.classList.toggle("con-pager", multi);
   if (multi) pageInfo.textContent = `${docPag + 1}/${docUrls.length}`;
   btnPrev.disabled = docPag === 0;
   btnNext.disabled = docPag === docUrls.length - 1;
@@ -793,6 +814,7 @@ function irPagina(n) {
   docPag = n;
   actualizarPaginacion();
   btnDl.href = docUrls[n];
+  actualizarDescarga();
   msg.hidden = true;
   img.classList.add("loading");
   spin.hidden = false;
@@ -929,7 +951,7 @@ const pts = new Map();
 let pinch = null;
 
 stage.addEventListener("pointerdown", (e) => {
-  if (viewer.hidden) return;
+  if (viewer.hidden || e.target.closest("#pager")) return;
   stage.setPointerCapture(e.pointerId);
   pts.set(e.pointerId, { x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, t0: Date.now() });
   if (pts.size === 1) stage.classList.add("dragging");
