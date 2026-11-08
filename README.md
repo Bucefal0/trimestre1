@@ -4,6 +4,13 @@ Sitio estático (un solo archivo HTML, sin dependencias) donde cada alumno elige
 **grado → grupo → su nombre** y ve en pantalla completa la hoja de respuestas
 escaneada de su examen.
 
+También incluye las **claves de respuestas** (2.º D y 3.º), que se abren en el
+mismo visor con las mismas herramientas: ajustar, acercar, girar, descargar e
+imprimir. Se puede llegar a ellas de dos formas:
+
+- Botón **"Ver la clave de respuestas"** en la pantalla de inicio.
+- Botón **🔑** dentro del visor del examen (y **📄** para regresar a él).
+
 ## Publicación
 
 El sitio se sirve con **GitHub Pages** desde la rama `main`:
@@ -13,11 +20,17 @@ El sitio se sirve con **GitHub Pages** desde la rama `main`:
 ## Estructura
 
 ```
-index.html        Página (contiene el índice de los 195 alumnos)
-Segundo D/        Hojas de respuestas escaneadas (.jpg)
+index.html                  Página (contiene el índice de los 195 alumnos)
+Segundo D/                  Hojas de respuestas escaneadas (.jpg)
 Tercero A/ ... F/
-Grupos.xlsx       Libro de calificaciones (fuente de los nombres y resultados)
+Claves/clave-2D.jpg         Clave 2.º D (generada de "Clave Examen 2D.pdf")
+Claves/clave-3ros.png       Clave 3.º   (generada de "Clave Examen 3ros.pptx")
+Grupos.xlsx                 Libro de calificaciones (fuente de nombres y resultados)
 ```
+
+Las claves se generaron como imagen para poder reutilizar el visor (zoom, ajuste,
+giro) en cualquier celular. Si actualizas el PDF o el PPTX hay que volver a
+exportar la imagen correspondiente en `Claves/`.
 
 ## Configuración
 

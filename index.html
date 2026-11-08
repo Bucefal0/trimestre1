@@ -80,6 +80,14 @@ button.primary{
 button.primary:hover{filter:brightness(1.06)}
 button.primary:active{transform:translateY(1px)}
 button.primary:disabled{background:#cfd8df; color:#8a99a6; box-shadow:none; cursor:not-allowed}
+button.secondary{
+  width:100%; margin-top:10px; padding:13px 18px; min-height:48px;
+  font-size:.98rem; font-weight:600; font-family:inherit; cursor:pointer;
+  color:var(--brand2); background:#eef7f6; border:1.5px solid #cbe3e0; border-radius:13px;
+  transition:background .15s ease, border-color .15s ease;
+}
+button.secondary:hover{background:#e3f1ef; border-color:#a9d6d1}
+button.secondary:active{transform:translateY(1px)}
 .hint{margin:12px 0 0; font-size:.86rem; color:var(--ink2); text-align:center; min-height:1.2em}
 .hint.error{color:var(--err)}
 
@@ -114,6 +122,11 @@ button.primary:disabled{background:#cfd8df; color:#8a99a6; box-shadow:none; curs
 .tools .close{background:var(--err); border-color:var(--err); color:#fff}
 .tools .duda{background:var(--brand); border-color:var(--brand); color:#fff}
 #zoomLabel{min-width:56px; font-variant-numeric:tabular-nums}
+#pageInfo{
+  display:inline-flex; align-items:center; justify-content:center; min-width:44px;
+  font-size:.8rem; font-weight:600; color:#9fb3c8; font-variant-numeric:tabular-nums;
+}
+#pageInfo[hidden]{display:none}
 #stage{
   position:relative; flex:1 1 auto; min-height:0; overflow:hidden; touch-action:none;
   background:#07121c; cursor:grab; -webkit-tap-highlight-color:transparent;
@@ -155,8 +168,9 @@ button.primary:disabled{background:#cfd8df; color:#8a99a6; box-shadow:none; curs
   .bar .who{flex-basis:100%; order:-1}
   .bar .who b{font-size:.92rem}
   .bar .who span{font-size:.71rem; margin-top:1px}
-  .tools{width:100%; gap:5px; flex-wrap:wrap}
-  .tools button, .tools a{flex:0 0 auto; height:38px; min-width:38px; padding:0 7px; font-size:.82rem; border-radius:10px}
+  .tools{width:100%; gap:4px; flex-wrap:wrap}
+  .tools button, .tools a{flex:0 0 auto; height:36px; min-width:36px; padding:0 6px; font-size:.8rem; border-radius:10px}
+  #btnPrint{display:none}   /* en el celular: descargar o compartir en vez de imprimir */
   /* en el celular: cerrar al final de la fila de iconos y "Tengo una duda"
      a todo lo ancho en su propia fila (botón grande, fácil de tocar) */
   .tools .close{flex:0 0 38px; order:9}
@@ -172,10 +186,10 @@ button.primary:disabled{background:#cfd8df; color:#8a99a6; box-shadow:none; curs
 }
 
 @media (max-width:380px){
-  .tools button, .tools a{height:34px; min-width:34px; padding:0 5px; border-radius:9px}
-  .tools .close{flex:0 0 34px}
-  #zoomLabel{min-width:38px; font-size:.78rem}
-  #btnPrint{display:none}
+  .tools{gap:3px}
+  .tools button, .tools a{height:32px; min-width:32px; padding:0 5px; border-radius:9px}
+  .tools .close{flex:0 0 32px}
+  #zoomLabel{min-width:36px; font-size:.74rem}
   .bar .who b{font-size:.86rem}
   .bar .who span{font-size:.66rem}
 }
@@ -226,6 +240,10 @@ button.primary:disabled{background:#cfd8df; color:#8a99a6; box-shadow:none; curs
     </div>
 
     <button type="submit" class="primary" id="ver" disabled>Ver mi examen</button>
+
+    <button type="button" class="secondary" id="verClave">
+      📄 Ver la clave de respuestas
+    </button>
     <p class="hint" id="hint" role="status" aria-live="polite">Selecciona grado, grupo y tu nombre.</p>
   </form>
 
@@ -249,6 +267,10 @@ button.primary:disabled{background:#cfd8df; color:#8a99a6; box-shadow:none; curs
       <button type="button" id="btnFit" title="Ajustar a pantalla (F)" aria-label="Ajustar">⤢</button>
       <a id="btnDl" href="#" download title="Descargar imagen" aria-label="Descargar">⤓</a>
       <button type="button" id="btnPrint" title="Imprimir" aria-label="Imprimir">🖨</button>
+      <button type="button" id="btnPrev" title="Página anterior" aria-label="Página anterior" hidden>‹</button>
+      <span id="pageInfo" hidden>1/1</span>
+      <button type="button" id="btnNext" title="Página siguiente" aria-label="Página siguiente" hidden>›</button>
+      <button type="button" id="btnClave" title="Ver la clave de respuestas" aria-label="Clave de respuestas">🔑</button>
       <a id="btnDuda" class="duda" href="#" target="_blank" rel="noopener" hidden>Tengo una duda</a>
       <button type="button" class="close" id="btnClose" title="Cerrar (Esc)" aria-label="Cerrar">✕</button>
     </div>
@@ -516,6 +538,23 @@ const META = {
   }
 };
 
+/* Claves de respuestas (una imagen por página). Se generaron a partir de
+   "Clave Examen 2D.pdf" y "Clave Examen 3ros.pptx". */
+const CLAVES = {
+  "2°": {
+    titulo: "Clave de respuestas · Segundo D",
+    meta: "Matemáticas · Trimestre 1 · 15 reactivos",
+    archivo: "Clave respuestas 2-D.jpg",
+    paginas: ["Claves/clave-2D.jpg"]
+  },
+  "3°": {
+    titulo: "Clave de respuestas · Tercero",
+    meta: "Matemáticas · Trimestre 1 · 26 reactivos · igual para todas las versiones",
+    archivo: "Clave respuestas 3ros.jpg",
+    paginas: ["Claves/clave-3ros.png"]
+  }
+};
+
 /* ------------------------- utilidades ------------------------- */
 const $ = (s) => document.querySelector(s);
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
@@ -526,7 +565,9 @@ const verBtn = $("#ver"), hint = $("#hint"), form = $("#form");
 const viewer = $("#viewer"), stage = $("#stage"), img = $("#img");
 const spin = $("#spin"), msg = $("#msg"), tip = $("#tip");
 const vName = $("#vName"), vMeta = $("#vMeta");
-const btnDl = $("#btnDl"), btnDuda = $("#btnDuda");
+const btnDl = $("#btnDl"), btnDuda = $("#btnDuda"), btnClave = $("#btnClave");
+const btnPrev = $("#btnPrev"), btnNext = $("#btnNext"), pageInfo = $("#pageInfo");
+const verClaveBtn = $("#verClave");
 
 let actual = null;            // entrada seleccionada
 let enHistorial = false;      // ya empujamos un estado para el visor
@@ -569,7 +610,15 @@ function llenarAlumno() {
   hint.classList.remove("error");
 }
 
-gradoSel.addEventListener("change", () => { llenarGrupo(); llenarAlumno(); });
+function actualizarClaveHome() {
+  const c = CLAVES[gradoSel.value];
+  verClaveBtn.hidden = !c;
+  if (c) verClaveBtn.textContent = `📄 Ver la clave de respuestas (${gradoSel.value})`;
+}
+
+gradoSel.addEventListener("change", () => { llenarGrupo(); llenarAlumno(); actualizarClaveHome(); });
+
+verClaveBtn.addEventListener("click", () => abrirClave(gradoSel.value));
 grupoSel.addEventListener("change", () => llenarAlumno());
 
 alumnoSel.addEventListener("change", () => {
@@ -602,61 +651,32 @@ function urlsPara(d) {
   return [...set];
 }
 
-function abrir(idx) {
-  const d = DATA[idx];
-  if (!d) return;
+let ultimoIdx = null;          // último alumno abierto (para volver desde la clave)
 
-  const clave = CONFIG.clavePorGrupo[d.g];
-  if (clave) {
-    const dada = prompt(`Escribe la clave del grupo ${claveGrupo(d.gr, d.gu)}:`);
-    if (dada === null) return;
-    if (dada.trim() !== String(clave)) { alert("Clave incorrecta."); return; }
-  }
-
-  actual = d;
-  vName.textContent = d.n;
-  const m = META[d.g] || {};
-  vMeta.textContent = [
-    `Grupo ${claveGrupo(d.gr, d.gu)}`,
-    m.ver ? `Examen ${m.ver}` : "",
-    m.nq ? `${m.nq} reactivos` : "",
-    m.fecha || ""
-  ].filter(Boolean).join(" · ");
-  vMeta.title = vMeta.textContent;
+/* Abre cualquier documento en el visor: {titulo, meta, paginas[], descarga, alumno} */
+function mostrarDoc(doc) {
+  actual = doc.alumno || null;
+  vName.textContent = doc.titulo;
+  vMeta.textContent = doc.meta;
+  vMeta.title = doc.meta;
+  img.alt = doc.alt || doc.titulo;
 
   rot = 0; scale = 1; tx = 0; ty = 0; aplicar();
   msg.hidden = true;
-  spin.hidden = false;
   img.classList.add("loading");
-  img.alt = `Hoja de respuestas de ${d.n}`;
+  spin.hidden = false;
 
-  const urls = urlsPara(d);
-  let i = 0;
-  cargando++;
-  const token = cargando;
+  docUrls = doc.paginas.slice();            // ya vienen codificadas
+  docPag = 0;
+  btnDl.href = docUrls[0];
+  btnDl.setAttribute("download", doc.descarga);
+  actualizarPaginacion();
 
-  const siguiente = () => {
-    if (i >= urls.length) {
-      spin.hidden = true;
-      mostrarError(urls[0]);
-      return;
-    }
-    img.src = urls[i++];
-  };
+  if (doc.alumno) configurarDuda(doc.alumno);
+  else btnDuda.hidden = true;
+  actualizarBotonClave();
 
-  img.onload = () => {
-    if (token !== cargando) return;
-    spin.hidden = true;
-    msg.hidden = true;
-    img.classList.remove("loading");
-    ajustar();
-  };
-  img.onerror = () => { if (token === cargando) siguiente(); };
-
-  btnDl.href = urls[0];
-  btnDl.setAttribute("download", `Examen ${claveGrupo(d.gr, d.gu)} - ${d.n.replace(/,/g, "")}.jpg`);
-
-  configurarDuda(d);
+  cargarImagen(docUrls[0]);
 
   viewer.hidden = false;
   document.body.style.overflow = "hidden";
@@ -674,9 +694,124 @@ function abrir(idx) {
   if (!enHistorial) {
     try { history.pushState({ visor: true }, ""); enHistorial = true; } catch (_) {}
   }
+}
+
+/* carga con reintentos por normalización Unicode del nombre del archivo */
+function cargarImagen(url) {
+  const variantes = [url];
+  try {
+    const dec = decodeURI(url);
+    variantes.push(CONFIG.base + encodeURI(dec.normalize("NFC")));
+    variantes.push(CONFIG.base + encodeURI(dec.normalize("NFD")));
+  } catch (_) {}
+
+  let i = 0;
+  cargando++;
+  const token = cargando;
+
+  const siguiente = () => {
+    if (i >= variantes.length) {
+      spin.hidden = true;
+      mostrarError(variantes[0]);
+      return;
+    }
+    img.src = variantes[i++];
+  };
+
+  img.onload = () => {
+    if (token !== cargando) return;
+    spin.hidden = true;
+    msg.hidden = true;
+    img.classList.remove("loading");
+    ajustar();
+  };
+  img.onerror = () => { if (token === cargando) siguiente(); };
 
   siguiente();
 }
+
+function abrir(idx) {
+  const d = DATA[idx];
+  if (!d) return;
+
+  const clave = CONFIG.clavePorGrupo[d.g];
+  if (clave) {
+    const dada = prompt(`Escribe la clave del grupo ${claveGrupo(d.gr, d.gu)}:`);
+    if (dada === null) return;
+    if (dada.trim() !== String(clave)) { alert("Clave incorrecta."); return; }
+  }
+
+  ultimoIdx = idx;
+  const m = META[d.g] || {};
+  mostrarDoc({
+    titulo: d.n,
+    alt: `Hoja de respuestas de ${d.n}`,
+    meta: [
+      `Grupo ${claveGrupo(d.gr, d.gu)}`,
+      m.ver ? `Examen ${m.ver}` : "",
+      m.nq ? `${m.nq} reactivos` : "",
+      m.fecha || ""
+    ].filter(Boolean).join(" · "),
+    paginas: urlsPara(d),
+    descarga: `Examen ${claveGrupo(d.gr, d.gu)} - ${d.n.replace(/,/g, "")}.jpg`,
+    alumno: d
+  });
+}
+
+function abrirClave(gr) {
+  const c = CLAVES[gr || gradoSel.value];
+  if (!c) return;
+  mostrarDoc({
+    titulo: c.titulo,
+    alt: "Clave de respuestas",
+    meta: c.meta,
+    paginas: c.paginas.map(p => encodeURI(CONFIG.base + p)),
+    descarga: c.archivo,
+    alumno: null
+  });
+}
+
+/* ---------- paginación (solo si un documento tiene varias páginas) ---------- */
+let docUrls = [], docPag = 0;
+
+function actualizarPaginacion() {
+  const multi = docUrls.length > 1;
+  btnPrev.hidden = !multi;
+  btnNext.hidden = !multi;
+  pageInfo.hidden = !multi;
+  if (multi) pageInfo.textContent = `${docPag + 1}/${docUrls.length}`;
+  btnPrev.disabled = docPag === 0;
+  btnNext.disabled = docPag === docUrls.length - 1;
+}
+
+function irPagina(n) {
+  if (n < 0 || n >= docUrls.length || n === docPag) return;
+  docPag = n;
+  actualizarPaginacion();
+  btnDl.href = docUrls[n];
+  msg.hidden = true;
+  img.classList.add("loading");
+  spin.hidden = false;
+  cargarImagen(docUrls[n]);
+}
+
+/* ---------- botón para saltar entre examen y clave ---------- */
+function actualizarBotonClave() {
+  if (actual) {
+    btnClave.hidden = false;
+    btnClave.textContent = "🔑";
+    btnClave.title = "Ver la clave de respuestas";
+    btnClave.setAttribute("aria-label", "Ver la clave de respuestas");
+  } else if (ultimoIdx !== null) {
+    btnClave.hidden = false;
+    btnClave.textContent = "📄";
+    btnClave.title = "Volver a mi examen";
+    btnClave.setAttribute("aria-label", "Volver a mi examen");
+  } else {
+    btnClave.hidden = true;
+  }
+}
+
 
 function mostrarError(url) {
   img.classList.remove("loading");
@@ -780,7 +915,7 @@ function limitarPaneo() {
 }
 
 stage.addEventListener("wheel", (e) => {
-  if (!actual) return;
+  if (viewer.hidden) return;
   e.preventDefault();
   zoomEn(e.clientX, e.clientY, Math.exp(-e.deltaY * 0.0015));
 }, { passive: false });
@@ -790,7 +925,7 @@ const pts = new Map();
 let pinch = null;
 
 stage.addEventListener("pointerdown", (e) => {
-  if (!actual) return;
+  if (viewer.hidden) return;
   stage.setPointerCapture(e.pointerId);
   pts.set(e.pointerId, { x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, t0: Date.now() });
   if (pts.size === 1) stage.classList.add("dragging");
@@ -828,7 +963,7 @@ function soltar(e) {
   pts.delete(e.pointerId);
   if (pts.size < 2) pinch = null;
   if (pts.size === 0) stage.classList.remove("dragging");
-  if (!p || !actual) return;
+  if (!p || viewer.hidden) return;
 
   /* doble toque (o doble clic) para acercar / ajustar */
   if (Math.hypot(e.clientX - p.x0, e.clientY - p.y0) > 12 || Date.now() - p.t0 > 400) return;
@@ -859,6 +994,12 @@ $("#btnZoom").addEventListener("click", () => resetearZoom());
 $("#btnFit").addEventListener("click", () => ajustar());
 $("#btnRot").addEventListener("click", () => { rot = (rot + 90) % 360; ajustar(); });
 $("#btnPrint").addEventListener("click", () => window.print());
+$("#btnClave").addEventListener("click", () => {
+  if (actual) abrirClave(actual.gr);
+  else if (ultimoIdx !== null) abrir(ultimoIdx);
+});
+btnPrev.addEventListener("click", () => irPagina(docPag - 1));
+btnNext.addEventListener("click", () => irPagina(docPag + 1));
 $("#btnClose").addEventListener("click", cerrarUI);
 
 document.addEventListener("keydown", (e) => {
@@ -869,6 +1010,8 @@ document.addEventListener("keydown", (e) => {
   else if (e.key === "0") resetearZoom();
   else if (e.key.toLowerCase() === "f") ajustar();
   else if (e.key.toLowerCase() === "r") { rot = (rot + 90) % 360; ajustar(); }
+  else if (e.key === "ArrowLeft") irPagina(docPag - 1);
+  else if (e.key === "ArrowRight") irPagina(docPag + 1);
 });
 
 window.addEventListener("popstate", () => {
@@ -895,6 +1038,7 @@ function iniciar() {
   verBtn.disabled = true;
   hint.textContent = "Selecciona grado, grupo y tu nombre.";
   hint.classList.remove("error");
+  actualizarClaveHome();
 }
 iniciar();
 
